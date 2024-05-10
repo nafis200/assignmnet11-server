@@ -42,7 +42,6 @@ const client = new MongoClient(uri, {
           console.log(err);
           return res.status(401).send({message: 'unauthorized'})
         }
-        console.log('value in the token',decoded);
         req.user = decoded
         next()
        })
@@ -57,8 +56,8 @@ const client = new MongoClient(uri, {
 
   async function run() {
     try { 
-    const itemsCollection = client.db('itemsDB').collection('items')
-    const CoffeeCollection = client.db('coffeeDB').collection('coffee')
+    const itemsCollection = client.db('OnlineDb').collection('privateonline')
+    const CoffeeCollection = client.db('OnlineDB').collection('onlines')
 
     app.post('/jwt',async(req,res)=>{
        const user = req.body 
@@ -70,20 +69,26 @@ const client = new MongoClient(uri, {
 
     app.post('/logout',async(req,res)=>{
         const user = req.body;
-        console.log('logging out user',user)
         res.clearCookie('token',{...cookieOption, maxAge:0}).send({success:true})
 
     })
-   
-    app.get('/coffee',async(req,res)=>{
+  //  public coffeecollection
+    app.get('/create',async(req,res)=>{
       const cursor = CoffeeCollection.find()
       const result = await cursor.toArray()
       res.send(result)
     })
+
+    app.post('/create',async(req,res)=>{
+      const items = req.body 
+      const result = await CoffeeCollection.insertOne(items)
+      console.log('create post',req.body);
+      res.send(result)
+ })
+
+  //  private
     app.get('/item',verifyToken,async(req,res)=>{
-        console.log('req.query.emails',req.query.email);
-        console.log('token',req.cookies)
-        console.log('from valid token',req.user)
+        
  
         if(req.query.email !== req.user.email){
            return res.status(403).send({message: 'forbidden access please valid mail'})
@@ -92,7 +97,7 @@ const client = new MongoClient(uri, {
         let query = {}
         if(req.query?.email){
            query = {email: req.query.email}
-           console.log(query);
+           
         }
 
         const cursor = itemsCollection.find(query)
