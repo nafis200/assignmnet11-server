@@ -87,6 +87,20 @@ const client = new MongoClient(uri, {
       res.send(result)
  })
 
+ app.delete('/create/:id',async(req,res)=>{
+  const id = req.params.id 
+  const query = {_id : new ObjectId(id)}
+  const result = await CoffeeCollection.deleteOne(query)
+  res.send(result)
+})
+
+app.get('/create/:id',async(req,res)=>{
+  const id = req.params.id
+  const query = {_id : new ObjectId(id)}
+  const result = await CoffeeCollection.findOne(query)
+  res.send(result)
+})
+
   //  private
     app.get('/item',verifyToken,async(req,res)=>{
         
