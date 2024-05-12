@@ -80,6 +80,23 @@ const client = new MongoClient(uri, {
       res.send(result)
     })
     
+    app.get('/productsCount',async(req,res)=>{
+        
+      const count = await CoffeeCollection.estimatedDocumentCount();
+      res.send({count});
+ })
+
+ app.get('/products',async(req,res)=>{
+      
+  const page = parseInt(req.query.page)
+  const size = parseInt(req.query.size)
+
+
+   const cursor = CoffeeCollection.find()
+   const result = await cursor.skip(page * size).limit(size).toArray()
+   res.send(result)
+})
+
 
     app.post('/create',async(req,res)=>{
       const items = req.body 
