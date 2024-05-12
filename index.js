@@ -33,7 +33,7 @@ const client = new MongoClient(uri, {
 
   const verifyToken = async(req,res,next)=>{
        const token = req.cookies?.token 
-       console.log('value of verify token',token);
+      //  console.log('value of verify token',token);
        if(!token){
          return res.status(401).send({message: 'not autorized'})
        }
@@ -56,8 +56,9 @@ const client = new MongoClient(uri, {
 
   async function run() {
     try { 
-    const itemsCollection = client.db('OnlineDb').collection('privateonline')
+    const itemsCollection = client.db('OnlineDB').collection('privateonline')
     const CoffeeCollection = client.db('OnlineDB').collection('onlines')
+    const StudentCollection = client.db('OnlineDB').collection('marks')
 
     app.post('/jwt',async(req,res)=>{
        const user = req.body 
@@ -101,10 +102,68 @@ app.get('/create/:id',async(req,res)=>{
   res.send(result)
 })
 
+app.put('/create/:id', async(req,res)=>{
+  const id = req.params.id
+  const User = req.body
+  console.log(User);
+  const filter = {_id:new ObjectId(id)}
+  const options = {upsert: true}
+// 
+  const updateUser = {
+     $set:{
+      image: User.image,
+      description:User.description,
+      title:User.title,
+      marks:User.marks,
+      description:User.description,
+      medium:User.medium,
+      Dates: User.Dates,
+      email:User.email
+     }
+  }
+  
+  const result = await CoffeeCollection.updateOne(filter, updateUser,options)
+  res.send(result)
+ 
+})
+
 
   //  private
+
+    app.post('/item',async(req,res)=>{
+    const items = req.body 
+    const result = await itemsCollection.insertOne(items)
+    res.send(result)
+    })
+
+    app.post('/student',async(req,res)=>{
+      const items = req.body 
+      console.log(req.body);
+      const result = await StudentCollection.insertOne(items)
+      res.send(result)
+    })
+
+    app.patch('/item/:id',async(req,res)=>{
+      const updatebooking = req.body
+      const id = req.params.id
+      const filter = {_id:new ObjectId(id)}
+      const options = {upsert: true}
+      console.log(updatebooking)
+      const updateDoc = {
+        $set:{
+          status:updatebooking.status,
+          obtainmarks:updatebooking.obtainmarks,
+          feedback: updatebooking.feedback
+        }
+      }
+      const result = await itemsCollection.updateOne(filter, updateDoc)
+      res.send(result)
+    })
+
+
     app.get('/item',verifyToken,async(req,res)=>{
         
+        console.log(req.body);
  
         if(req.query.email !== req.user.email){
            return res.status(403).send({message: 'forbidden access please valid mail'})
@@ -112,7 +171,7 @@ app.get('/create/:id',async(req,res)=>{
 
         let query = {}
         if(req.query?.email){
-           query = {email: req.query.email}
+           query = {Submittedemail: req.query.email}
            
         }
 
@@ -120,12 +179,16 @@ app.get('/create/:id',async(req,res)=>{
         const result = await cursor.toArray()
         res.send(result)
     })
-    app.get('/item/:id',async(req,res)=>{
-      const id = req.params.id
-      const query = {_id : new ObjectId(id)}
-      const result = await itemsCollection.findOne(query)
+    
+    app.get('/items',verifyToken,async(req,res)=>{
+      const cursor = itemsCollection.find()
+      const result = await cursor.toArray()
       res.send(result)
-  })
+    })
+
+    
+    
+
       
       console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
