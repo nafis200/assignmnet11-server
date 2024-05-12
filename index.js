@@ -73,13 +73,13 @@ const client = new MongoClient(uri, {
         res.clearCookie('token',{...cookieOption, maxAge:0}).send({success:true})
 
     })
-  //  public coffeecollection
+  
     app.get('/create',async(req,res)=>{
       const cursor = CoffeeCollection.find()
       const result = await cursor.toArray()
       res.send(result)
     })
-    // 
+    
 
     app.post('/create',async(req,res)=>{
       const items = req.body 
